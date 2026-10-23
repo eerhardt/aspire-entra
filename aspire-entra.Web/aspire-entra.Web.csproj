@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\aspire-entra.ServiceDefaults\aspire-entra.ServiceDefaults.csproj" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="4.16.1" />
   </ItemGroup>
 
 </Project>
