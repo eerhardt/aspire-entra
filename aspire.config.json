@@ -1,5 +1,8 @@
 {
   "appHost": {
     "path": "aspire-entra.AppHost/aspire-entra.AppHost.csproj"
+  },
+  "sdk": {
+    "version": "17.0.0-preview.1.26522.1"
   }
 }
