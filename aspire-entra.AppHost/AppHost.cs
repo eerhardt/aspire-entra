@@ -1,4 +1,5 @@
 var builder = DistributedApplication.CreateBuilder(args);
+builder.AddAzureContainerAppEnvironment("env");
 
 var apiService = builder.AddDotnetProject("apiservice", "../aspire-entra.ApiService/aspire-entra.ApiService.csproj")
     .WithHttpHealthCheck("/health");
