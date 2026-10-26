@@ -4,7 +4,7 @@ builder.AddAzureContainerAppEnvironment("env");
 var apiService = builder.AddDotnetProject("apiservice", "../aspire-entra.ApiService/aspire-entra.ApiService.csproj")
     .WithHttpHealthCheck("/health");
 
-builder.AddDotnetProject("webfrontend", "../aspire-entra.Web/aspire-entra.Web.csproj")
+var webFrontend = builder.AddDotnetProject("webfrontend", "../aspire-entra.Web/aspire-entra.Web.csproj")
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health")
     .WithReference(apiService)
