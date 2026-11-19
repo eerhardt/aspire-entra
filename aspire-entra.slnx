@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="aspire-entra.ApiService/aspire-entra.ApiService.csproj" />
+  <Project Path="aspire-entra.AppHost/aspire-entra.AppHost.csproj" />
+  <Project Path="aspire-entra.ServiceDefaults/aspire-entra.ServiceDefaults.csproj" />
+  <Project Path="aspire-entra.Web/aspire-entra.Web.csproj" />
+</Solution>
