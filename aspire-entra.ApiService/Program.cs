@@ -1,3 +1,7 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Identity.Web;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
@@ -6,6 +10,20 @@ builder.AddServiceDefaults();
 // Add services to the container.
 builder.Services.AddProblemDetails();
 
+// Validate access tokens issued by Microsoft Entra ID. The AzureAd configuration section
+// is provided by the AppHost from the API's Entra ID app registration.
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddMicrosoftIdentityWebApi(builder.Configuration);
+
+// Require an authenticated user by default. The fallback policy applies to every endpoint without its own
+// authorization metadata, so new endpoints are protected unless they explicitly opt out with AllowAnonymous().
+var requireAuthenticatedUser = new AuthorizationPolicyBuilder()
+    .RequireAuthenticatedUser()
+    .Build();
+builder.Services.AddAuthorizationBuilder()
+    .SetDefaultPolicy(requireAuthenticatedUser)
+    .SetFallbackPolicy(requireAuthenticatedUser);
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -13,6 +31,9 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
