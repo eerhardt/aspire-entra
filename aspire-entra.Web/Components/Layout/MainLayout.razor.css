@@ -21,18 +21,6 @@ main {
     align-items: center;
 }
 
-    .top-row ::deep .user-info {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .top-row ::deep .user-photo {
-        width: 2rem;
-        height: 2rem;
-        object-fit: cover;
-    }
-
     .top-row ::deep a, .top-row ::deep .btn-link {
         white-space: nowrap;
         margin-left: 1.5rem;
