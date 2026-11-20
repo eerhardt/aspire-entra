@@ -14,12 +14,11 @@ builder.AddServiceDefaults();
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration)
     .EnableTokenAcquisitionToCallDownstreamApi([$"{builder.Configuration["AzureAd:ClientId"]}/.default"])
-    .AddMicrosoftGraph(builder.Configuration.GetSection(UserPhotoService.GraphConfigurationSection))
+    .AddMicrosoftGraph(builder.Configuration.GetSection(UserPhotoEndpoints.GraphConfigurationSection))
     .AddInMemoryTokenCaches();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<BlazorAuthenticationChallengeHandler>();
-builder.Services.AddScoped<UserPhotoService>();
 
 builder.Services.AddAuthorization(options =>
 {
@@ -64,6 +63,7 @@ app.MapStaticAssets()
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+app.MapUserPhoto();
 app.MapGroup("/authentication").MapLoginAndLogout();
 
 app.MapDefaultEndpoints();
