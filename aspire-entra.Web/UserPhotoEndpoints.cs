@@ -3,6 +3,7 @@ using System.Net.Mime;
 using Microsoft.Graph;
 using Microsoft.Graph.Models.ODataErrors;
 using Microsoft.Identity.Web;
+using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
 using Microsoft.Net.Http.Headers;
 
 namespace aspire_entra.Web;
@@ -40,11 +41,18 @@ public static class UserPhotoEndpoints
         {
             try
             {
-                var photo = await graphClient.Me.Photos[PhotoSize].Content.GetAsync(cancellationToken: cancellationToken);
+                // Serve the photo with the Content-Type Graph returns for it. The SDK only exposes response headers when
+                // asked to, through this option.
+                var headersOption = new HeadersInspectionHandlerOption { InspectResponseHeaders = true };
+                var photo = await graphClient.Me.Photos[PhotoSize].Content.GetAsync(
+                    request => request.Options.Add(headersOption), cancellationToken);
+                var contentType = headersOption.ResponseHeaders.TryGetValue(HeaderNames.ContentType, out var values)
+                    ? values.FirstOrDefault()
+                    : null;
 
                 // Users without a photo get the cached placeholder too, so the browser doesn't ask again on every page.
                 SetCacheHeaders(response);
-                return photo is null ? Placeholder() : Results.Stream(photo, MediaTypeNames.Image.Jpeg);
+                return photo is null ? Placeholder() : Results.Stream(photo, contentType ?? MediaTypeNames.Image.Jpeg);
             }
             catch (ODataError error) when (error.ResponseStatusCode == (int)HttpStatusCode.NotFound)
             {
