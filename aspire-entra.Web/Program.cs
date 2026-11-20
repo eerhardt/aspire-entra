@@ -10,13 +10,16 @@ builder.AddServiceDefaults();
 
 // Sign users in with Microsoft Entra ID and acquire access tokens to call the API service.
 // The AzureAd and DownstreamApis configuration sections are provided by the AppHost from the
-// frontend's Entra ID app registration.
+// frontend's Entra ID app registration, including the Microsoft Graph base URL and scopes.
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration)
-    .EnableTokenAcquisitionToCallDownstreamApi()
+    .EnableTokenAcquisitionToCallDownstreamApi([$"{builder.Configuration["AzureAd:ClientId"]}/.default"])
+    .AddMicrosoftGraph(builder.Configuration.GetSection(UserPhotoService.GraphConfigurationSection))
     .AddInMemoryTokenCaches();
+
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<BlazorAuthenticationChallengeHandler>();
+builder.Services.AddScoped<UserPhotoService>();
 
 builder.Services.AddAuthorization(options =>
 {

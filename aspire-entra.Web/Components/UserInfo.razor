@@ -1,6 +1,16 @@
-﻿<AuthorizeView>
+﻿@using System.Security.Claims
+@inject UserPhotoService UserPhotos
+@inject BlazorAuthenticationChallengeHandler ChallengeHandler
+
+<AuthorizeView>
     <Authorized>
-        <span class="nav-item">Hello, @context.User.Identity?.Name</span>
+        <span class="nav-item user-info">
+            @if (photoDataUrl is not null)
+            {
+                <img src="@photoDataUrl" alt="" class="user-photo rounded-circle" />
+            }
+            @context.User.Identity?.Name
+        </span>
         <form action="authentication/logout" method="post" class="nav-item">
             <AntiforgeryToken />
             <input type="hidden" name="returnUrl" value="/" />
@@ -11,3 +21,35 @@
         <a href="authentication/login?returnUrl=/" class="nav-link">Log in</a>
     </NotAuthorized>
 </AuthorizeView>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationState { get; set; }
+
+    private string? photoDataUrl;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationState is null)
+        {
+            return;
+        }
+
+        var user = (await AuthenticationState).User;
+        if (user.Identity?.IsAuthenticated != true)
+        {
+            return;
+        }
+
+        try
+        {
+            photoDataUrl = await UserPhotos.GetPhotoDataUrlAsync(user);
+        }
+        catch (Exception ex)
+        {
+            // Sends the user to sign in again when a Graph token can't be acquired silently, for example when
+            // the user hasn't consented to the Graph permission yet. Other failures just leave the photo out.
+            await ChallengeHandler.HandleExceptionAsync(ex);
+        }
+    }
+}
