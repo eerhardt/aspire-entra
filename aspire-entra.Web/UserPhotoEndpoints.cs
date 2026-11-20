@@ -20,6 +20,9 @@ public static class UserPhotoEndpoints
     // One of the sizes Microsoft Graph stores for profile photos.
     private const string PhotoSize = "48x48";
 
+    // A generic headshot silhouette in wwwroot, served for users without a photo.
+    private const string PlaceholderPath = "user-placeholder.svg";
+
     // "private" because the response is specific to the signed-in user: only the browser may cache it, not shared caches.
     private static readonly CacheControlHeaderValue CacheControl = new() { Private = true, MaxAge = TimeSpan.FromHours(1) };
 
@@ -39,20 +42,23 @@ public static class UserPhotoEndpoints
             {
                 var photo = await graphClient.Me.Photos[PhotoSize].Content.GetAsync(cancellationToken: cancellationToken);
 
-                // Users without a photo get a cached 404 too, so the browser doesn't ask again on every page.
+                // Users without a photo get the cached placeholder too, so the browser doesn't ask again on every page.
                 SetCacheHeaders(response);
-                return photo is null ? Results.NotFound() : Results.Stream(photo, MediaTypeNames.Image.Jpeg);
+                return photo is null ? Placeholder() : Results.Stream(photo, MediaTypeNames.Image.Jpeg);
             }
             catch (ODataError error) when (error.ResponseStatusCode == (int)HttpStatusCode.NotFound)
             {
                 SetCacheHeaders(response);
-                return Results.NotFound();
+                return Placeholder();
             }
             catch (MicrosoftIdentityWebChallengeUserException)
             {
                 // A Graph token can't be acquired silently, for example after an app restart cleared the in-memory
-                // token cache. An image request can't follow a sign-in redirect, so it fails without being cached.
-                return Results.Unauthorized();
+                // token cache. An image request can't follow a sign-in redirect, so the placeholder is shown without
+                // being cached, and the photo is fetched again on the next page.
+                return Placeholder();
             }
         });
+
+    private static IResult Placeholder() => Results.File(PlaceholderPath, MediaTypeNames.Image.Svg);
 }
