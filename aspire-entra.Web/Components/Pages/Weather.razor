@@ -1,14 +1,14 @@
 ﻿@page "/weather"
 @attribute [StreamRendering(true)]
-@attribute [OutputCache(Duration = 5)]
 
 @inject WeatherApiClient WeatherApi
+@inject BlazorAuthenticationChallengeHandler ChallengeHandler
 
 <PageTitle>Weather</PageTitle>
 
 <h1>Weather</h1>
 
-<p>This component demonstrates showing data loaded from a backend API service.</p>
+<p>This component demonstrates showing data loaded from a backend API service secured with Microsoft Entra ID.</p>
 
 @if (forecasts == null)
 {
@@ -44,6 +44,18 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await WeatherApi.GetWeatherAsync();
+        try
+        {
+            forecasts = await WeatherApi.GetWeatherAsync();
+        }
+        catch (Exception ex)
+        {
+            // Sends the user to sign in again when a token can't be acquired silently, for example when
+            // the in-memory token cache was cleared by an app restart or more consent is required.
+            if (!await ChallengeHandler.HandleExceptionAsync(ex))
+            {
+                throw;
+            }
+        }
     }
 }
